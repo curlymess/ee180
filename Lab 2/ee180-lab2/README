@@ -1,0 +1,30 @@
+EE 180, Winter, 2022
+Noor Fakih - nfakih@stanford.edu
+Adrian Saldana - asaldana@stanford.edu
+Lab #2 - Coding for Efficiency
+Due 02/01/2022
+
+board: ee180-23z.stanford.edu
+
+Speed-up Summary
+ Single Thread optimized: 53.6
+ Multi  Thread optimized: 75.5
+
+Optimizations:
+ part 1 - sobel_calc.cpp
+ grayScale()
+ We restructured the double for-loop into a single for-loop for easier pointer manipulation. We then used neon vectors and intrinsics so we can process 16 pixels at a time. The neon intrinsic vld3q de-interleaves the 8 bit RGB values in the source img into three vectors, each with 16 elements. We apply the weight by bit-shifting so we can minimize the number of bits needed to represent the rgb values and maximize the number of pixels we can process at a time. A bit shift to the right is equivalent to multiplying by ½ which is approximately 0.587 and is significantly faster operation than float multiplication. 
+ 
+ sobelCalc()
+ Instead of calculating the x and y convolution separately, writing the data in separate structs, then adding them together and writing that to output, we did that all at once. In our single double for-loop, we calculate the sum of the x and y convolution of the image, check once that no pixels are over 255 (max value stored in 8 bits), and write it to output. There is significantly less multiplication, repetitive code and loading/writing data in our version as well.
+ 
+ part 2 - sobel_mt.cpp
+ We were provided with a version of sobel_mt.cpp that launched two threads, killed one of them instantly and processed the image with just one thread. In our implementation, we use both threads to process each frame of the video - thread0 processes the top half of the image and thread1 processes the bottom half. We also ensure that only one thread (thread0) does things like interact with the performance counters, captures the source image, and writes out to the excel sheet. We also added barriers periodically to ensure the threads move in parallel.
+ 
+Lessons Learned/Epilogue:
+General methods for optimization
+Loop unrolling
+Strength reduction
+Condense repetitive code
+Multithreading 
+Vectorization
